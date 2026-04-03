@@ -1,0 +1,68 @@
+version: '3.8'
+services:
+  mempool-db:
+    image: mariadb:10.5
+    container_name: mempool_db
+    environment:
+      MYSQL_DATABASE: 'mempool'
+      MYSQL_USER: 'mempool'
+      MYSQL_PASSWORD: 'mempool_password'
+      MYSQL_ROOT_PASSWORD: 'mempool_root_password'
+    ports:
+      - "3307:3306"
+    volumes:
+      - mempool_mysql:/var/lib/mysql
+    restart: always
+
+  mempool-api:
+    image: mempool/backend:v3.0.0
+    container_name: mempool_api
+    depends_on:
+      - mempool-db
+    environment:
+      DATABASE_HOST: mempool-db
+      DATABASE_PORT: 3306
+      DATABASE_DATABASE: mempool
+      DATABASE_USERNAME: mempool
+      DATABASE_PASSWORD: mempool_password
+      CORE_RPC_HOST: host.docker.internal
+      CORE_RPC_PORT: 8334
+      CORE_RPC_USERNAME: user
+      CORE_RPC_PASSWORD: pass
+      ELECTRUM_HOST: host.docker.internal
+      ELECTRUM_PORT: 50001
+      ELECTRUM_TLS_ENABLED: "false"
+      NETWORK: mainnet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8999:8999"
+      - "8090:8080"
+    restart: always
+
+  mempool-web:
+    image: silverruler/bitever-mempool-frontend:v1.0
+    container_name: mempool_web
+    depends_on:
+      - mempool-api
+    network_mode: "service:mempool-api"
+    # [강력 수정] 탭 아이콘과 헤더 로고를 모두 덮어씁니다.
+    volumes:
+      # 1. 파비콘 (모든 경로 강제 매핑)
+      - ./bitever-favicon.png:/var/www/mempool/browser/favicon.ico
+      - ./bitever-favicon.png:/var/www/mempool/browser/ko/favicon.ico
+      - ./bitever-favicon.png:/var/www/mempool/browser/en-US/favicon.ico
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon.ico
+      
+      # 2. SVG 아이콘 및 로고 (탭 아이콘은 종종 SVG를 먼저 읽습니다)
+      - ./bitever-favicon.svg:/var/www/mempool/browser/favicon.svg
+      - ./bitever-favicon.svg:/var/www/mempool/browser/assets/favicon.svg
+      
+      # 3. [핵심] 왼쪽 상단 "mempool" 로고 텍스트/아이콘 변경
+      # Mempool 버전에 따라 아래 경로 중 하나를 사용합니다. 
+      - ./bitever-favicon.svg:/var/www/mempool/browser/assets/mempool-logo.svg
+      - ./bitever-favicon.svg:/var/www/mempool/browser/resources/mempool-logo.svg
+    restart: always
+
+volumes:
+  mempool_mysql:

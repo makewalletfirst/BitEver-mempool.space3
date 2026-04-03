@@ -1,0 +1,47 @@
+name: Docker Compose CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test-compose:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose file
+        run: |
+          docker compose config
+
+      - name: Test Docker Compose Up
+        run: |
+          # 데몬 모드로 컨테이너 실행 테스트
+          docker compose up -d
+
+      - name: Wait for services to initialize
+        run: |
+          # 컨테이너가 켜지고 잠시 대기 (DB 초기화 등 고려)
+          sleep 15
+
+      - name: Check running containers
+        run: |
+          # 실행 중인 컨테이너 목록 확인 (디버깅용)
+          docker ps
+          
+          # 컨테이너 중 하나라도 Exited 상태면 실패로 간주
+          if [ $(docker ps -a -q -f status=exited | wc -l) -gt 0 ]; then
+            echo "Error: One or more containers failed to stay running."
+            docker ps -a
+            exit 1
+          fi
+
+      - name: Clean up Docker Compose
+        if: always()
+        run: |
+          # 테스트 완료 후 환경 정리
+          docker compose down

@@ -48,17 +48,17 @@ services:
     network_mode: "service:mempool-api"
     volumes:
       # 1. 파비콘 리소스 폴더 타겟팅 (과거 메모 적용)
-      - ~/bitever-mempool/bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon-32x32.png
-      - ~/bitever-mempool/bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon-16x16.png
-      - ~/bitever-mempool/bitever-favicon.png:/var/www/mempool/browser/resources/favicons/apple-touch-icon.png
-      - ~/bitever-mempool/bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon.ico
-      - ~/bitever-mempool/bitever-favicon.png:/var/www/mempool/browser/favicon.ico
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon-32x32.png
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon-16x16.png
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/favicons/apple-touch-icon.png
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon.ico
+      - ./bitever-favicon.png:/var/www/mempool/browser/favicon.ico
       
       # 2. 로고 및 SVG 타겟팅
-      - ~/bitever-mempool/bitever-favicon.svg:/var/www/mempool/browser/resources/logo.svg
-      - ~/bitever-mempool/bitever-favicon.svg:/var/www/mempool/browser/favicon.svg
-      - ~/bitever-mempool/bitever-favicon.png:/var/www/mempool/browser/resources/mempool-space-logo-horizontal.png
-      - ~/bitever-mempool/bitever-favicon.png:/var/www/mempool/browser/resources/mempool-logo-bigger.png
+      - ./bitever-favicon.svg:/var/www/mempool/browser/resources/logo.svg
+      - ./bitever-favicon.svg:/var/www/mempool/browser/favicon.svg
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/mempool-space-logo-horizontal.png
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/mempool-logo-bigger.png
     restart: always
 
 volumes:

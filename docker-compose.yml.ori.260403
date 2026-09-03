@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mempool-db:
+    image: mariadb:10.5
+    container_name: mempool_db
+    environment:
+      MYSQL_DATABASE: 'mempool'
+      MYSQL_USER: 'mempool'
+      MYSQL_PASSWORD: 'mempool_password'
+      MYSQL_ROOT_PASSWORD: 'mempool_root_password'
+    ports:
+      - "3307:3306"
+    volumes:
+      - mempool_mysql:/var/lib/mysql
+    restart: always
+
+  mempool-api:
+    image: mempool/backend:v3.0.0
+    container_name: mempool_api
+    depends_on:
+      - mempool-db
+    environment:
+      DATABASE_HOST: mempool-db
+      DATABASE_PORT: 3306
+      DATABASE_DATABASE: mempool
+      DATABASE_USERNAME: mempool
+      DATABASE_PASSWORD: mempool_password
+      CORE_RPC_HOST: host.docker.internal
+      CORE_RPC_PORT: 8334
+      CORE_RPC_USERNAME: user
+      CORE_RPC_PASSWORD: pass
+      ELECTRUM_HOST: host.docker.internal
+      ELECTRUM_PORT: 50001
+      ELECTRUM_TLS_ENABLED: "false"
+      NETWORK: mainnet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8999:8999"  # API 직접 접근용 포트
+      - "8090:8080"  # 프론트엔드 웹 접근용 (네트워크 공유로 인해 여기서 개방)
+    restart: always
+
+  mempool-web:
+    # [수정됨] 드디어 우리가 만든 커스텀 이미지를 사용합니다!
+    image: silverruler/bitever-mempool-frontend:v1.0
+    container_name: mempool_web
+    depends_on:
+      - mempool-api
+    network_mode: "service:mempool-api"
+    restart: always
+
+volumes:
+  mempool_mysql:

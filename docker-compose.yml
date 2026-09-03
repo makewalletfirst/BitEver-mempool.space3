@@ -1,0 +1,65 @@
+version: '3.8'
+services:
+  mempool-db:
+    image: mariadb:10.5
+    container_name: mempool_db
+    environment:
+      MYSQL_DATABASE: 'mempool'
+      MYSQL_USER: 'mempool'
+      MYSQL_PASSWORD: 'mempool_password'
+      MYSQL_ROOT_PASSWORD: 'mempool_root_password'
+    ports:
+      - "3307:3306"
+    volumes:
+      - mempool_mysql:/var/lib/mysql
+    restart: always
+
+  mempool-api:
+    image: mempool/backend:v3.0.0
+    container_name: mempool_api
+    depends_on:
+      - mempool-db
+    environment:
+      DATABASE_HOST: mempool-db
+      DATABASE_PORT: 3306
+      DATABASE_DATABASE: mempool
+      DATABASE_USERNAME: mempool
+      DATABASE_PASSWORD: mempool_password
+      CORE_RPC_HOST: host.docker.internal
+      CORE_RPC_PORT: 8334
+      CORE_RPC_USERNAME: user
+      CORE_RPC_PASSWORD: pass
+      ELECTRUM_HOST: host.docker.internal
+      ELECTRUM_PORT: 50001
+      ELECTRUM_TLS_ENABLED: "false"
+      NETWORK: mainnet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8999:8999"
+      - "8090:8080"
+    restart: always
+
+  mempool-web:
+    image: silverruler/bitever-mempool-frontend:v2.3
+    container_name: mempool_web
+    depends_on:
+      - mempool-api
+    network_mode: "service:mempool-api"
+    volumes:
+      # 1. 파비콘 리소스 폴더 타겟팅 (과거 메모 적용)
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon-32x32.png
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon-16x16.png
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/favicons/apple-touch-icon.png
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/favicons/favicon.ico
+      - ./bitever-favicon.png:/var/www/mempool/browser/favicon.ico
+      
+      # 2. 로고 및 SVG 타겟팅
+      - ./bitever-favicon.svg:/var/www/mempool/browser/resources/logo.svg
+      - ./bitever-favicon.svg:/var/www/mempool/browser/favicon.svg
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/mempool-space-logo-horizontal.png
+      - ./bitever-favicon.png:/var/www/mempool/browser/resources/mempool-logo-bigger.png
+    restart: always
+
+volumes:
+  mempool_mysql:
